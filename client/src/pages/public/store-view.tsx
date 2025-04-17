@@ -1,12 +1,60 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Product, Category, Catalogue } from "@shared/schema";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle, 
+  DialogDescription,
+  DialogFooter
+} from "@/components/ui/dialog";
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
+import { Product, Category, Catalogue, StoreSettings } from "@shared/schema";
+
+// Define checkout form schema
+const checkoutFormSchema = z.object({
+  customerName: z.string().min(2, "Name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  address: z.string().min(5, "Address must be at least 5 characters"),
+  paymentMethod: z.enum(["cod", "online", "bank_transfer"], {
+    required_error: "Please select a payment method",
+  }),
+  notes: z.string().optional(),
+});
+
+type CheckoutFormValues = z.infer<typeof checkoutFormSchema>;
+
+// Cart item type
+interface CartItem {
+  product: Product;
+  quantity: number;
+}
 
 export default function StoreView() {
+  const { toast } = useToast();
+  
+  // Cart state
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [isCartOpen, setIsCartOpen] = useState(false);
+  const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  
+  // Calculate cart total price
+  const totalPrice = cart.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+  
   // Fetch store information
-  const { data: storeInfo, isLoading: isLoadingStore } = useQuery({
+  const { data: storeInfo, isLoading: isLoadingStore } = useQuery<StoreSettings>({
     queryKey: ["/api/store"],
   });
 
@@ -18,8 +66,346 @@ export default function StoreView() {
   // Fetch products
   const { data: products, isLoading: isLoadingProducts } = useQuery<Product[]>({
     queryKey: ["/api/products"],
-    select: (data) => data.slice(0, 4), // Only show first 4 products
   });
+  
+  // Form for checkout
+  const form = useForm<CheckoutFormValues>({
+    resolver: zodResolver(checkoutFormSchema),
+    defaultValues: {
+      customerName: "",
+      email: "",
+      phone: "",
+      address: "",
+      notes: "",
+    },
+  });
+  
+  // Create order mutation
+  const createOrderMutation = useMutation({
+    mutationFn: async (values: CheckoutFormValues) => {
+      const orderData = {
+        ...values,
+        items: cart.map(item => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+          price: item.product.price
+        })),
+        totalAmount: totalPrice
+      };
+      
+      return apiRequest("POST", "/api/orders", orderData);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Order placed successfully",
+        description: "Thank you for your order. We'll be in touch soon!",
+      });
+      setCart([]);
+      setIsCheckoutOpen(false);
+      form.reset();
+    },
+    onError: (error) => {
+      toast({
+        title: "Error placing order",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+  
+  // Add product to cart
+  const addToCart = (product: Product) => {
+    setCart(prev => {
+      const existingItem = prev.find(item => item.product.id === product.id);
+      
+      if (existingItem) {
+        // Increment quantity if already in cart
+        return prev.map(item => 
+          item.product.id === product.id 
+            ? { ...item, quantity: item.quantity + 1 } 
+            : item
+        );
+      } else {
+        // Add new item to cart
+        return [...prev, { product, quantity: 1 }];
+      }
+    });
+    
+    toast({
+      title: "Added to cart",
+      description: `${product.name} has been added to your cart.`,
+    });
+  };
+  
+  // Update cart item quantity
+  const updateQuantity = (productId: number, newQuantity: number) => {
+    if (newQuantity < 1) return;
+    
+    setCart(prev => 
+      prev.map(item => 
+        item.product.id === productId 
+          ? { ...item, quantity: newQuantity } 
+          : item
+      )
+    );
+  };
+  
+  // Remove item from cart
+  const removeFromCart = (productId: number) => {
+    setCart(prev => prev.filter(item => item.product.id !== productId));
+  };
+  
+  // Handle checkout form submission
+  const onCheckoutSubmit = (values: CheckoutFormValues) => {
+    createOrderMutation.mutate(values);
+  };
+
+  // Render cart dialog
+  const renderCartDialog = () => {
+    return (
+      <Dialog open={isCartOpen} onOpenChange={setIsCartOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Your Shopping Cart</DialogTitle>
+            <DialogDescription>
+              Review your items before checkout.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {cart.length === 0 ? (
+            <div className="py-6 text-center text-gray-500">
+              Your cart is empty.
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {cart.map((item) => (
+                <div key={item.product.id} className="flex justify-between items-center pb-4 border-b">
+                  <div className="flex items-center space-x-3">
+                    <img
+                      src={item.product.imageUrl || "https://images.unsplash.com/photo-1526170375885-4d8ecf77b99f"}
+                      alt={item.product.name}
+                      className="w-12 h-12 object-cover rounded"
+                    />
+                    <div>
+                      <h4 className="font-medium text-sm">{item.product.name}</h4>
+                      <p className="text-sm text-gray-500">₹{item.product.price.toLocaleString()}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                    >
+                      <i className="ri-subtract-line"></i>
+                    </Button>
+                    <span className="w-6 text-center">{item.quantity}</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="h-8 w-8 p-0"
+                      onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                    >
+                      <i className="ri-add-line"></i>
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="h-8 w-8 p-0 text-red-500"
+                      onClick={() => removeFromCart(item.product.id)}
+                    >
+                      <i className="ri-delete-bin-line"></i>
+                    </Button>
+                  </div>
+                </div>
+              ))}
+              
+              <div className="pt-4 flex justify-between font-medium">
+                <span>Total</span>
+                <span>₹{totalPrice.toLocaleString()}</span>
+              </div>
+            </div>
+          )}
+          
+          <DialogFooter className="flex justify-between">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setIsCartOpen(false)}
+            >
+              Continue Shopping
+            </Button>
+            <Button 
+              type="button" 
+              onClick={() => {
+                setIsCartOpen(false);
+                setIsCheckoutOpen(true);
+              }}
+              disabled={cart.length === 0}
+            >
+              Proceed to Checkout
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  };
+  
+  // Render checkout dialog
+  const renderCheckoutDialog = () => {
+    return (
+      <Dialog open={isCheckoutOpen} onOpenChange={setIsCheckoutOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Checkout</DialogTitle>
+            <DialogDescription>
+              Complete your order by providing your details.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onCheckoutSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="customerName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your full name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="email"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="you@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="phone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Phone Number</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Your contact number" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Delivery Address</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Enter your full address" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="paymentMethod"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Payment Method</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a payment method" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="cod" key="cod">Cash on Delivery</SelectItem>
+                        <SelectItem value="online" key="online">Online Payment</SelectItem>
+                        <SelectItem value="bank_transfer" key="bank_transfer">Bank Transfer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Order Notes (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea placeholder="Any special instructions for your order" {...field} rows={2} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              
+              <div className="space-y-2 pt-4">
+                <h4 className="font-medium">Order Summary</h4>
+                <div className="text-sm space-y-1">
+                  {cart.map((item) => (
+                    <div key={item.product.id} className="flex justify-between">
+                      <span>{item.product.name} × {item.quantity}</span>
+                      <span>₹{(item.product.price * item.quantity).toLocaleString()}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between font-medium pt-2">
+                  <span>Total</span>
+                  <span>₹{totalPrice.toLocaleString()}</span>
+                </div>
+              </div>
+              
+              <DialogFooter className="pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setIsCheckoutOpen(false);
+                    setIsCartOpen(true);
+                  }}
+                >
+                  Back to Cart
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createOrderMutation.isPending}
+                >
+                  {createOrderMutation.isPending ? (
+                    <>
+                      <i className="ri-loader-4-line animate-spin mr-2"></i>
+                      Processing...
+                    </>
+                  ) : (
+                    "Place Order"
+                  )}
+                </Button>
+              </DialogFooter>
+            </form>
+          </Form>
+        </DialogContent>
+      </Dialog>
+    );
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -157,7 +543,10 @@ export default function StoreView() {
                       <p className="mt-1 text-sm text-gray-500">{product.description || 'Product description'}</p>
                       <div className="mt-2 flex items-center justify-between">
                         <p className="text-lg font-medium text-gray-900">₹{product.price.toLocaleString()}</p>
-                        <button className="p-1 rounded-full bg-primary-100 text-primary-700 hover:bg-primary-200">
+                        <button 
+                          className="p-1 rounded-full bg-primary-100 text-primary-700 hover:bg-primary-200"
+                          onClick={() => addToCart(product)}
+                        >
                           <i className="ri-shopping-cart-2-line"></i>
                         </button>
                       </div>
@@ -219,6 +608,30 @@ export default function StoreView() {
           </div>
         </div>
       </footer>
+      
+      {/* Floating Cart Button */}
+      <div className="fixed bottom-6 right-6 z-50">
+        <Button
+          size="lg"
+          onClick={() => setIsCartOpen(true)}
+          className="rounded-full h-16 w-16 shadow-lg"
+        >
+          <div className="relative">
+            <i className="ri-shopping-cart-2-line text-2xl"></i>
+            {cart.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs font-bold rounded-full h-5 w-5 flex items-center justify-center">
+                {cart.length}
+              </span>
+            )}
+          </div>
+        </Button>
+      </div>
+      
+      {/* Cart Dialog */}
+      {renderCartDialog()}
+      
+      {/* Checkout Dialog */}
+      {renderCheckoutDialog()}
     </div>
   );
 }

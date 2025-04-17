@@ -338,11 +338,11 @@ export default function Orders() {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="processing">Processing</SelectItem>
-                    <SelectItem value="shipped">Shipped</SelectItem>
-                    <SelectItem value="delivered">Delivered</SelectItem>
-                    <SelectItem value="cancelled">Cancelled</SelectItem>
+                    <SelectItem value="pending" key="pending">Pending</SelectItem>
+                    <SelectItem value="processing" key="processing">Processing</SelectItem>
+                    <SelectItem value="shipped" key="shipped">Shipped</SelectItem>
+                    <SelectItem value="delivered" key="delivered">Delivered</SelectItem>
+                    <SelectItem value="cancelled" key="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
