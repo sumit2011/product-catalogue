@@ -42,12 +42,16 @@ export function CatalogueForm({ catalogue, onSuccess, onCancel }: CatalogueFormP
   // Create or update mutation
   const mutation = useMutation({
     mutationFn: async (values: CatalogueFormValues) => {
+      // Convert productIds to numbers if they are strings
+      const productIds = values.productIds?.map(id => typeof id === 'string' ? parseInt(id) : id);
+      const data = { ...values, productIds };
+      
       if (catalogue) {
         // Update existing catalogue
-        return apiRequest("PUT", `/api/catalogues/${catalogue.id}`, values);
+        return apiRequest("PUT", `/api/catalogues/${catalogue.id}`, data);
       } else {
         // Create new catalogue
-        return apiRequest("POST", "/api/catalogues", values);
+        return apiRequest("POST", "/api/catalogues", data);
       }
     },
     onSuccess: async () => {
