@@ -33,8 +33,24 @@ export function AppLayout({ children }: AppLayoutProps) {
     return <>{children}</>;
   }
 
+  // Initialize theme detection for SSR
+  useEffect(() => {
+    const initTheme = () => {
+      const root = window.document.documentElement;
+      const isDark = 
+        localStorage.theme === 'dark' ||
+        (!('theme' in localStorage) && 
+        window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+      root.classList.remove('light', 'dark');
+      root.classList.add(isDark ? 'dark' : 'light');
+    };
+    
+    initTheme();
+  }, []);
+
   return (
-    <div className="min-h-screen flex flex-col md:flex-row">
+    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50 dark:bg-gray-950 text-gray-900 dark:text-gray-50">
       {/* Mobile Header */}
       <MobileHeader 
         user={user} 
@@ -49,7 +65,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       />
 
       {/* Main Content */}
-      <main className="flex-1 md:ml-64 min-h-screen">
+      <main className="flex-1 md:ml-64 min-h-screen transition-colors duration-200">
         {children}
       </main>
     </div>

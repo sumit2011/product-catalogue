@@ -1,5 +1,6 @@
-import { useLocation, Link } from "wouter";
+import { useLocation } from "wouter";
 import { cn } from "@/lib/utils";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface NavItem {
   href: string;
@@ -51,21 +52,22 @@ export function Sidebar({ isOpen, onClose, user }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "w-64 bg-white border-r border-gray-200 fixed inset-y-0 left-0 transform transition duration-200 ease-in-out z-20 md:z-0",
+        "w-64 bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 fixed inset-y-0 left-0 transform transition duration-200 ease-in-out z-20 md:z-0",
         isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0"
       )}
     >
       <div className="h-full flex flex-col">
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center">
-            <span className="text-xl font-semibold text-primary-700">CatalogueHub</span>
+        <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+          <span className="text-xl font-semibold text-primary-700 dark:text-primary-500">CatalogueHub</span>
+          <div className="hidden md:block">
+            <ThemeToggle />
           </div>
         </div>
         
         <nav className="flex-1 pt-4 pb-4 overflow-y-auto scrollbar-hide">
           {navGroups.map((group) => (
             <div key={group.title} className="mb-6">
-              <div className="px-4 mb-2 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              <div className="px-4 mb-2 text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">
                 {group.title}
               </div>
               {group.items.map((item) => {
@@ -76,8 +78,8 @@ export function Sidebar({ isOpen, onClose, user }: SidebarProps) {
                   <div
                     key={item.href}
                     className={cn(
-                      "flex items-center px-4 py-3 text-gray-800 hover:bg-gray-100 rounded-md mb-1 group cursor-pointer",
-                      isActive && "bg-gray-100"
+                      "flex items-center px-4 py-3 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md mb-1 group cursor-pointer",
+                      isActive && "bg-gray-100 dark:bg-gray-800"
                     )}
                     onClick={() => {
                       window.location.href = item.href;
@@ -89,7 +91,9 @@ export function Sidebar({ isOpen, onClose, user }: SidebarProps) {
                     <i className={cn(
                       item.icon,
                       "mr-3 text-lg",
-                      isActive ? "text-primary-700" : "text-gray-500 group-hover:text-primary-700"
+                      isActive 
+                        ? "text-primary-700 dark:text-primary-500" 
+                        : "text-gray-500 dark:text-gray-400 group-hover:text-primary-700 group-hover:dark:text-primary-500"
                     )}></i>
                     <span>{item.label}</span>
                   </div>
@@ -99,14 +103,14 @@ export function Sidebar({ isOpen, onClose, user }: SidebarProps) {
           ))}
         </nav>
         
-        <div className="p-4 border-t border-gray-200">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-800">
           <div className="flex items-center">
-            <div className="h-8 w-8 rounded-full bg-primary-700 text-white flex items-center justify-center">
+            <div className="h-8 w-8 rounded-full bg-primary-700 dark:bg-primary-600 text-white flex items-center justify-center">
               <span className="text-sm font-medium">{user.initials}</span>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-gray-800">{user.name}</p>
-              <p className="text-xs text-gray-500">{user.email}</p>
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{user.name}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{user.email}</p>
             </div>
           </div>
         </div>
