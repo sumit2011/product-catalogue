@@ -83,10 +83,10 @@ export default function Products() {
             (product.description && product.description.toLowerCase().includes(searchTerm.toLowerCase()));
           
           // Filter by category
-          const matchesCategory = !categoryFilter || product.categoryId.toString() === categoryFilter;
+          const matchesCategory = !categoryFilter || categoryFilter === "all" || product.categoryId.toString() === categoryFilter;
           
           // Filter by status
-          const matchesStatus = !statusFilter || product.stockStatus === statusFilter;
+          const matchesStatus = !statusFilter || statusFilter === "all" || product.stockStatus === statusFilter;
           
           return matchesSearch && matchesCategory && matchesStatus;
         })
@@ -144,7 +144,7 @@ export default function Products() {
                 <SelectValue placeholder="All Categories" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Categories</SelectItem>
+                <SelectItem value="all">All Categories</SelectItem>
                 {categories?.map((category) => (
                   <SelectItem key={category.id} value={category.id.toString()}>
                     {category.name}
@@ -157,7 +157,7 @@ export default function Products() {
                 <SelectValue placeholder="All Status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Status</SelectItem>
+                <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="in_stock">In Stock</SelectItem>
                 <SelectItem value="low_stock">Low Stock</SelectItem>
                 <SelectItem value="out_of_stock">Out of Stock</SelectItem>

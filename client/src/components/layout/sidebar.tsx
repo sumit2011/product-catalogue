@@ -73,29 +73,26 @@ export function Sidebar({ isOpen, onClose, user }: SidebarProps) {
                   (item.href === "/dashboard" && location === "/");
                 
                 return (
-                  <Link
+                  <div
                     key={item.href}
-                    href={item.href}
+                    className={cn(
+                      "flex items-center px-4 py-3 text-gray-800 hover:bg-gray-100 rounded-md mb-1 group cursor-pointer",
+                      isActive && "bg-gray-100"
+                    )}
                     onClick={() => {
+                      window.location.href = item.href;
                       if (window.innerWidth < 768) {
                         onClose();
                       }
                     }}
                   >
-                    <a
-                      className={cn(
-                        "flex items-center px-4 py-3 text-gray-800 hover:bg-gray-100 rounded-md mb-1 group",
-                        isActive && "bg-gray-100"
-                      )}
-                    >
-                      <i className={cn(
-                        item.icon,
-                        "mr-3 text-lg",
-                        isActive ? "text-primary-700" : "text-gray-500 group-hover:text-primary-700"
-                      )}></i>
-                      <span>{item.label}</span>
-                    </a>
-                  </Link>
+                    <i className={cn(
+                      item.icon,
+                      "mr-3 text-lg",
+                      isActive ? "text-primary-700" : "text-gray-500 group-hover:text-primary-700"
+                    )}></i>
+                    <span>{item.label}</span>
+                  </div>
                 );
               })}
             </div>
