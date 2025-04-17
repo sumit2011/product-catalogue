@@ -108,10 +108,8 @@ export default function StoreView() {
                     <div className="p-4">
                       <h3 className="text-lg font-medium text-gray-900 mb-1 group-hover:text-primary-700">{catalogue.name}</h3>
                       <p className="text-sm text-gray-500 mb-3">{catalogue.description || 'View our collection'}</p>
-                      <Link href={`/catalogue/${catalogue.id}`}>
-                        <a className="text-primary-700 text-sm font-medium flex items-center hover:text-primary-800">
+                      <Link href={`/catalogue/${catalogue.id}`} className="text-primary-700 text-sm font-medium flex items-center hover:text-primary-800">
                           View Catalogue <i className="ri-arrow-right-line ml-1"></i>
-                        </a>
                       </Link>
                     </div>
                   </div>

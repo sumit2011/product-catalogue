@@ -400,9 +400,9 @@ export function CartAndCheckout() {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent className="dark:bg-gray-800 dark:border-gray-700">
-                        <SelectItem value="cod">Cash on Delivery</SelectItem>
-                        <SelectItem value="online">Online Payment</SelectItem>
-                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                        <SelectItem value="cod" key="cod">Cash on Delivery</SelectItem>
+                        <SelectItem value="online" key="online">Online Payment</SelectItem>
+                        <SelectItem value="bank_transfer" key="bank_transfer">Bank Transfer</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

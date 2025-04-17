@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -86,7 +87,7 @@ export function CatalogueForm({ catalogue, onSuccess, onCancel }: CatalogueFormP
   });
 
   // Fetch catalogue products if editing
-  useQuery<Product[]>({
+  const catalogueProductsQuery = useQuery<Product[]>({
     queryKey: ["/api/catalogues", catalogue?.id, "products"],
     enabled: !!catalogue,
     queryFn: async () => {
@@ -96,11 +97,14 @@ export function CatalogueForm({ catalogue, onSuccess, onCancel }: CatalogueFormP
       }
       return response.json();
     },
-    onSuccess: (data) => {
-      // Set the productIds field with the fetched products
-      form.setValue("productIds", data.map(product => product.id));
-    },
   });
+
+  // Set product IDs when data is available
+  useEffect(() => {
+    if (catalogueProductsQuery.data) {
+      form.setValue("productIds", catalogueProductsQuery.data.map(product => product.id));
+    }
+  }, [catalogueProductsQuery.data, form]);
 
   const onSubmit = (values: CatalogueFormValues) => {
     mutation.mutate(values);
