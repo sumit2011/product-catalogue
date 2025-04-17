@@ -86,7 +86,7 @@ export function CatalogueForm({ catalogue, onSuccess, onCancel }: CatalogueFormP
   });
 
   // Fetch catalogue products if editing
-  useQuery({
+  useQuery<Product[]>({
     queryKey: ["/api/catalogues", catalogue?.id, "products"],
     enabled: !!catalogue,
     queryFn: async () => {
@@ -96,7 +96,7 @@ export function CatalogueForm({ catalogue, onSuccess, onCancel }: CatalogueFormP
       }
       return response.json();
     },
-    onSuccess: (data: Product[]) => {
+    onSuccess: (data) => {
       // Set the productIds field with the fetched products
       form.setValue("productIds", data.map(product => product.id));
     },

@@ -3,9 +3,11 @@ import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CartAndCheckout } from "./cart-and-checkout";
+import { StoreSettings } from "@shared/schema";
 
 export function StorePreview() {
-  const { data: storeSettings, isLoading } = useQuery({
+  const { data: storeSettings, isLoading } = useQuery<StoreSettings>({
     queryKey: ["/api/store"],
   });
 
@@ -112,10 +114,14 @@ export function StorePreview() {
             </div>
 
             {/* Contact & WhatsApp Section */}
-            <div className="bg-gray-50 rounded-lg p-6 mb-12">
+            {/* Products and Cart/Checkout Section */}
+            <CartAndCheckout />
+
+            {/* Contact & WhatsApp Section */}
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-6 mb-12">
               <div className="text-center mb-6">
-                <h2 className="text-2xl font-semibold text-gray-900 mb-2">Have questions about our products?</h2>
-                <p className="text-gray-600">We're here to help! Contact us directly via WhatsApp for quick assistance.</p>
+                <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-2">Have questions about our products?</h2>
+                <p className="text-gray-600 dark:text-gray-400">We're here to help! Contact us directly via WhatsApp for quick assistance.</p>
               </div>
               <div className="flex justify-center">
                 <a href={`https://wa.me/${storeSettings?.whatsappNumber || '9876543210'}`} className="inline-flex items-center px-6 py-3 bg-green-500 text-white font-medium rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
