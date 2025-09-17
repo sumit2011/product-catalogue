@@ -27,6 +27,7 @@ export default function Orders() {
   // Fetch orders
   const { data: orders, isLoading: isLoadingOrders, isError: isOrdersError } = useQuery<Order[]>({
     queryKey: ["/api/orders"],
+    queryFn: () => apiRequest("GET", "/api/orders"),
   });
 
   // Fetch stats
@@ -277,6 +278,7 @@ export default function Orders() {
             filterColumn={{
               name: "status",
               options: [
+                { label: "All", value: "" },
                 { label: "Pending", value: "pending" },
                 { label: "Processing", value: "processing" },
                 { label: "Shipped", value: "shipped" },
@@ -321,7 +323,7 @@ export default function Orders() {
               <div>
                 <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Update Status</h3>
                 <Select 
-                  value={selectedOrder.status} 
+                  value={selectedOrder.status || "pending"} 
                   onValueChange={(value) => {
                     updateStatusMutation.mutate({ 
                       id: selectedOrder.id, 
@@ -338,11 +340,11 @@ export default function Orders() {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="pending" key="pending">Pending</SelectItem>
-                    <SelectItem value="processing" key="processing">Processing</SelectItem>
-                    <SelectItem value="shipped" key="shipped">Shipped</SelectItem>
-                    <SelectItem value="delivered" key="delivered">Delivered</SelectItem>
-                    <SelectItem value="cancelled" key="cancelled">Cancelled</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="processing">Processing</SelectItem>
+                    <SelectItem value="shipped">Shipped</SelectItem>
+                    <SelectItem value="delivered">Delivered</SelectItem>
+                    <SelectItem value="cancelled">Cancelled</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

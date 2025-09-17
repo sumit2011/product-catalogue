@@ -91,7 +91,58 @@ export class MemStorage implements IStorage {
     this.createUser({
       username: 'demo',
       password: 'password'
-    }).then(user => {
+    }).then (async user => {
+
+      // Add sample orders
+      await this.createOrder({
+        orderNumber: 'ORD-1001',
+        customerName: 'John Doe',
+        customerEmail: 'john@example.com',
+        customerPhone: '9876543210',
+        totalAmount: 2499,
+        status: 'delivered',
+        userId: user.id
+      }, []);
+
+      await this.createOrder({
+        orderNumber: 'ORD-1002',
+        customerName: 'Jane Smith',
+        customerEmail: 'jane@example.com',
+        customerPhone: '9876543211',
+        totalAmount: 1599,
+        status: 'processing',
+        userId: user.id
+      }, []);
+
+      await this.createOrder({
+        orderNumber: 'ORD-1003',
+        customerName: 'Mike Johnson',
+        customerEmail: 'mike@example.com',
+        customerPhone: '9876543212',
+        totalAmount: 3999,
+        status: 'pending',
+        userId: user.id
+      }, []);
+
+      await this.createOrder({
+        orderNumber: 'ORD-1004',
+        customerName: 'Sarah Wilson',
+        customerEmail: 'sarah@example.com',
+        customerPhone: '9876543213',
+        totalAmount: 1899,
+        status: 'shipped',
+        userId: user.id
+      }, []);
+
+      await this.createOrder({
+        orderNumber: 'ORD-1005',
+        customerName: 'Robert Brown',
+        customerEmail: 'robert@example.com',
+        customerPhone: '9876543214',
+        totalAmount: 999,
+        status: 'cancelled',
+        userId: user.id
+      }, []);
       // Add default store stats
       this.updateStoreStats(user.id, {
         totalRevenue: 28450,

@@ -90,7 +90,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
   };
 
   return (
-    <Card>
+    <Card className="overflow-auto max-h-[calc(100vh-4rem)] px-4 sm:px-0">
       <CardHeader>
         <CardTitle>{product ? "Edit Product" : "Add New Product"}</CardTitle>
       </CardHeader>
@@ -125,7 +125,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
               )}
             />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="sku"
@@ -155,7 +155,7 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="stock"
@@ -243,17 +243,19 @@ export function ProductForm({ product, onSuccess, onCancel }: ProductFormProps) 
             />
           </CardContent>
           
-          <CardFooter className="flex justify-between">
+          <CardFooter className="flex flex-col sm:flex-row justify-between space-y-4 sm:space-y-0">
             <Button 
               type="button" 
               variant="outline" 
               onClick={onCancel}
+              className="w-full sm:w-auto"
             >
               Cancel
             </Button>
             <Button 
               type="submit" 
               disabled={mutation.isPending}
+              className="w-full sm:w-auto"
             >
               {mutation.isPending ? (
                 <>

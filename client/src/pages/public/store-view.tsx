@@ -455,15 +455,15 @@ export default function StoreView() {
           <div className="rounded-lg overflow-hidden bg-gradient-to-r from-primary-700 to-primary-900 mb-12">
             <div className="md:flex items-center">
               <div className="p-8 md:p-12 md:w-1/2">
-                <h2 className="text-3xl font-bold text-white mb-4">New Collection</h2>
-                <p className="text-primary-100 mb-6">
+                <h2 className="text-3xl font-bold text-black mb-4">New Collection</h2>
+                <p className="text-black mb-6">
                   {isLoadingStore ? (
                     <Skeleton className="h-16 w-full" />
                   ) : (
                     storeInfo?.storeDescription || 'Discover our latest range of products for your everyday needs.'
                   )}
                 </p>
-                <Button className="bg-white text-primary-700 hover:bg-gray-100">
+                <Button className="bg-black text-primary-700 hover:bg-gray-100">
                   Shop Now
                 </Button>
               </div>
@@ -556,12 +556,13 @@ export default function StoreView() {
                       <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{product.description || 'Product description'}</p>
                       <div className="mt-2 flex items-center justify-between">
                         <p className="text-lg font-medium text-gray-900 dark:text-white">₹{product.price.toLocaleString()}</p>
-                        <button 
-                          className="p-2 rounded-full bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-400 hover:bg-primary-200 dark:hover:bg-primary-800"
-                          onClick={() => addToCart(product)}
-                        >
-                          <i className="ri-shopping-cart-2-line"></i>
-                        </button>
+                        
+                <Button
+                  size="sm"
+                  onClick={() => addToCart(product)}
+                >
+                  Add to Cart
+                </Button>
                       </div>
                     </div>
                   </div>
